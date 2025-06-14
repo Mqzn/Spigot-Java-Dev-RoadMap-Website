@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Spigot Developer Roadmap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(0, 255, 127, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(0, 255, 127, 0.6);
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 127, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 0, 127, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 127, 255, 0.05) 0%, transparent 50%);
+            color: #ffffff;
+            overflow-x: auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 48%, rgba(0, 255, 127, 0.02) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(255, 0, 127, 0.02) 50%, transparent 52%);
+            background-size: 100px 100px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff7f, #ff007f, #007fff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(0, 255, 127, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.5s forwards;
+        }
+
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            position: relative;
+        }
+
+        .stage {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .stage:nth-child(1) { animation-delay: 0.2s; }
+        .stage:nth-child(2) { animation-delay: 0.4s; }
+        .stage:nth-child(3) { animation-delay: 0.6s; }
+        .stage:nth-child(4) { animation-delay: 0.8s; }
+        .stage:nth-child(5) { animation-delay: 1.0s; }
+        .stage:nth-child(6) { animation-delay: 1.2s; }
+
+        .stage:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .stage:nth-child(even) .stage-content {
+            animation: slideInLeft 0.8s ease-out forwards;
+        }
+
+        .stage:nth-child(odd) .stage-content {
+            animation: slideInRight 0.8s ease-out forwards;
+        }
+
+        .stage:hover {
+            transform: translateY(-5px);
+            filter: brightness(1.1);
+        }
+
+        .stage::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 4px;
+            height: 120%;
+            background: linear-gradient(180deg, #00ff7f, #007fff, #ff007f);
+            transform: translateX(-50%);
+            z-index: 0;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
+        }
+
+        .stage:last-child::before {
+            display: none;
+        }
+
+        .stage-content {
+            flex: 1;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(0, 255, 127, 0.2);
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .stage-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 127, 0.05), transparent);
+            transform: rotate(45deg) translate(-50%, -50%);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .stage-content:hover::before {
+            opacity: 1;
+            transform: rotate(45deg) translate(-30%, -30%);
+        }
+
+        .stage-content:hover {
+            border-color: rgba(0, 255, 127, 0.6);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(0, 255, 127, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-8px);
+        }
+
+        .stage-number {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff7f, #007fff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            z-index: 2;
+            position: relative;
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(0, 255, 127, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stage-number:hover {
+            animation: glow 2s ease-in-out infinite;
+            transform: scale(1.1);
+        }
+
+        .stage-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #00ff7f, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stage-duration {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 127, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid rgba(0, 255, 127, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .skills-section {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .skills-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #00ff7f;
+            text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
+        }
+
+        .skills-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .skills-list li {
+            margin-bottom: 10px;
+            padding: 12px 20px;
+            position: relative;
+            background: rgba(0, 255, 127, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #00ff7f;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .skills-list li:hover {
+            background: rgba(0, 255, 127, 0.15);
+            transform: translateX(10px);
+            border-left-color: #ffffff;
+        }
+
+        .skills-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 8px;
+            color: #00ff7f;
+            transition: all 0.3s ease;
+        }
+
+        .skills-list li:hover::before {
+            color: #ffffff;
+            transform: scale(1.2);
+        }
+
+        .practice-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 0, 127, 0.2);
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .practice-section:hover {
+            border-color: rgba(255, 0, 127, 0.4);
+            box-shadow: 0 10px 25px rgba(255, 0, 127, 0.1);
+        }
+
+        .practice-title {
+            font-size: 1.3rem;
+            color: #ff007f;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+        }
+
+        .practice-title::before {
+            content: '🛠️';
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .practice-item {
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.8), rgba(25, 25, 25, 0.8));
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .practice-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 127, 0.1), transparent);
+            transition: all 0.6s ease;
+        }
+
+        .practice-item:hover::before {
+            left: 100%;
+        }
+
+        .practice-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255, 0, 127, 0.6);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(255, 0, 127, 0.3);
+        }
+
+        .practice-item-title {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .practice-item-desc {
+            font-size: 0.95rem;
+            color: #cccccc;
+            line-height: 1.4;
+            position: relative;
+            z-index: 2;
+        }
+
+        .timeline-connector {
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            width: 2px;
+            height: 30px;
+            background: #4CAF50;
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 768px) {
+            .stage {
+                flex-direction: column !important;
+                align-items: center;
+            }
+            
+            .stage::before {
+                left: 30px;
+                height: 100%;
+            }
+            
+            .stage-number {
+                order: -1;
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .practice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stage-content {
+                padding: 20px;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #00ff7f, #007fff);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #007fff, #ff007f);
+        }
+
+        /* Selection styling */
+        ::selection {
+            background: rgba(0, 255, 127, 0.3);
+            color: #ffffff;
+        }
+
+        /* Focus outlines */
+        .stage-content:focus,
+        .practice-item:focus,
+        .stage-number:focus {
+            outline: 2px solid #00ff7f;
+            outline-offset: 2px;
+        }
+
+        .legend {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 40px;
+            border: 2px solid rgba(0, 127, 255, 0.3);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 1.5s both;
+        }
+
+        .legend:hover {
+            border-color: rgba(0, 127, 255, 0.6);
+            box-shadow: 0 15px 35px rgba(0, 127, 255, 0.2);
+        }
+
+        .legend h3 {
+            color: #007fff;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 127, 255, 0.5);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .legend-item:hover {
+            background: rgba(0, 127, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover .legend-color {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px currentColor;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Minecraft Spigot Developer Roadmap</h1>
+            <p>Your journey from beginner to advanced plugin developer</p>
+        </div>
+
+        <div class="roadmap">
+            <!-- Stage 1: Foundation -->
+            <div class="stage">
+                <div class="stage-number">1</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Foundation</h2>
+                    <div class="stage-duration">⏱️ 2-4 weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Core Skills</h3>
+                        <ul class="skills-list">
+                            <li>Java OOP (Classes, Inheritance, Polymorphism)</li>
+                            <li>Collections (ArrayList, HashMap, Set)</li>
+                            <li>Exception handling & File I/O</li>
+                            <li>Maven/Gradle build tools</li>
+                            <li>Git version control</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Practice Projects</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Console Calculator</div>
+                                <div class="practice-item-desc">Build a calculator with error handling and file logging</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">File Manager</div>
+                                <div class="practice-item-desc">Create, read, write, and organize text files</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Student Grade System</div>
+                                <div class="practice-item-desc">Practice OOP with classes for students, courses, grades</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Simple Bank System</div>
+                                <div class="practice-item-desc">Account management with inheritance and interfaces</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 2: Minecraft Basics -->
+            <div class="stage">
+                <div class="stage-number">2</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Minecraft Basics</h2>
+                    <div class="stage-duration">⏱️ 1-2 weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Core Skills</h3>
+                        <ul class="skills-list">
+                            <li>Game mechanics (blocks, items, entities, worlds)</li>
+                            <li>Coordinate systems and world structure</li>
+                            <li>Server setup and configuration</li>
+                            <li>Plugin analysis and reverse engineering</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Practice Activities</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Server Administration</div>
+                                <div class="practice-item-desc">Set up local server, configure properties, manage worlds</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Plugin Analysis</div>
+                                <div class="practice-item-desc">Download and study popular plugins like Essentials</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Game Mechanics Study</div>
+                                <div class="practice-item-desc">Document how redstone, farming, combat systems work</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">World Exploration</div>
+                                <div class="practice-item-desc">Understand biomes, structures, and generation patterns</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 3: Spigot API Fundamentals -->
+            <div class="stage">
+                <div class="stage-number">3</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Spigot API Fundamentals</h2>
+                    <div class="stage-duration">⏱️ 3-4 weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Core Skills</h3>
+                        <ul class="skills-list">
+                            <li>Plugin lifecycle and structure</li>
+                            <li>Command creation and handling</li>
+                            <li>Event system and listeners</li>
+                            <li>Configuration management</li>
+                            <li>Player and server API</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Beginner Utilities</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Hello World Plugin</div>
+                                <div class="practice-item-desc">Basic plugin with /hello command and join messages</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">MOTD Manager</div>
+                                <div class="practice-item-desc">Change server MOTD with commands and config</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Player Info Tool</div>
+                                <div class="practice-item-desc">Display player stats: health, location, inventory</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Simple Chat Filter</div>
+                                <div class="practice-item-desc">Block bad words and spam with configurable lists</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">AFK Manager</div>
+                                <div class="practice-item-desc">Detect inactive players and broadcast status</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Death Logger</div>
+                                <div class="practice-item-desc">Log all player deaths with location and cause</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 4: Intermediate Development -->
+            <div class="stage">
+                <div class="stage-number">4</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Intermediate Development</h2>
+                    <div class="stage-duration">⏱️ 4-6 weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Core Skills</h3>
+                        <ul class="skills-list">
+                            <li>Custom items and NBT data</li>
+                            <li>GUI creation and inventory management</li>
+                            <li>Database integration</li>
+                            <li>Async programming</li>
+                            <li>Economy and permission systems</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Intermediate Utilities</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Teleportation System</div>
+                                <div class="practice-item-desc">/tp, /tpa, /home, /spawn with cooldowns and permissions</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Warp Manager</div>
+                                <div class="practice-item-desc">Create/delete warps with GUI menu and categories</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Custom Items Creator</div>
+                                <div class="practice-item-desc">Design items with custom names, lore, and effects</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Player Statistics</div>
+                                <div class="practice-item-desc">Track playtime, blocks broken, mobs killed in database</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Private Messaging</div>
+                                <div class="practice-item-desc">/msg, /reply system with ignore lists and toggles</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Kit System</div>
+                                <div class="practice-item-desc">Predefined item kits with cooldowns and permissions</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Vote Rewards</div>
+                                <div class="practice-item-desc">Reward players for voting with items and currency</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Auction House</div>
+                                <div class="practice-item-desc">Player-to-player item trading with GUI and economy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 5: Advanced Topics -->
+            <div class="stage">
+                <div class="stage-number">5</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Advanced Development</h2>
+                    <div class="stage-duration">⏱️ 6-8 weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Core Skills</h3>
+                        <ul class="skills-list">
+                            <li>Custom world generation</li>
+                            <li>Protocol manipulation (ProtocolLib)</li>
+                            <li>NMS usage and version compatibility</li>
+                            <li>Multi-server communication</li>
+                            <li>Performance optimization</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Advanced Utilities</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Land Protection</div>
+                                <div class="practice-item-desc">Claim system with flags, permissions, and GUI</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Custom Enchantments</div>
+                                <div class="practice-item-desc">Create unique enchants with special effects</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Minigame Framework</div>
+                                <div class="practice-item-desc">Arena system for PvP, racing, parkour games</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Custom Mobs</div>
+                                <div class="practice-item-desc">AI-driven entities with unique behaviors and drops</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Economy System</div>
+                                <div class="practice-item-desc">Banks, shops, jobs, and complex trading systems</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Quest System</div>
+                                <div class="practice-item-desc">Interactive quests with NPCs and objectives</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Punishment System</div>
+                                <div class="practice-item-desc">Advanced moderation with appeals and history</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">World Manager</div>
+                                <div class="practice-item-desc">Dynamic world creation, loading, and templates</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 6: Specialization -->
+            <div class="stage">
+                <div class="stage-number">6</div>
+                <div class="stage-content">
+                    <h2 class="stage-title">Specialization</h2>
+                    <div class="stage-duration">⏱️ 8+ weeks</div>
+                    
+                    <div class="skills-section">
+                        <h3 class="skills-title">Choose Your Path</h3>
+                        <ul class="skills-list">
+                            <li>Minigames & Competition Systems</li>
+                            <li>RPG & Progression Systems</li>
+                            <li>Administration & Management Tools</li>
+                            <li>Creative & Building Tools</li>
+                            <li>Network & Multi-server Systems</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-section">
+                        <h3 class="practice-title">Masterpiece Projects</h3>
+                        <div class="practice-grid">
+                            <div class="practice-item">
+                                <div class="practice-item-title">Battle Royale</div>
+                                <div class="practice-item-desc">Full minigame with shrinking world border and loot</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">MMORPG Plugin</div>
+                                <div class="practice-item-desc">Classes, skills, dungeons, and progression system</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Server Network Core</div>
+                                <div class="practice-item-desc">BungeeCord integration with cross-server features</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Creative Tools Suite</div>
+                                <div class="practice-item-desc">WorldEdit-like tools with custom brushes and commands</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Anti-Cheat System</div>
+                                <div class="practice-item-desc">Packet analysis and behavior detection</div>
+                            </div>
+                            <div class="practice-item">
+                                <div class="practice-item-title">Faction Warfare</div>
+                                <div class="practice-item-desc">Territory control with siege mechanics and diplomacy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>📚 Learning Resources</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4CAF50;"></div>
+                <span><strong>Spigot API Docs:</strong> Official documentation and JavaDocs</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2196F3;"></div>
+                <span><strong>Bukkit Wiki:</strong> Comprehensive tutorials and examples</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF9800;"></div>
+                <span><strong>SpigotMC Forums:</strong> Community support and plugin releases</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9C27B0;"></div>
+                <span><strong>GitHub:</strong> Open source plugins for learning and contribution</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
